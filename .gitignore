@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# ----- OS Files -----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ----- Project-specific: locally tested/uploaded files -----
+*.pdf
+!sample_data/*.pdf
+cover_letter.txt
