@@ -150,36 +150,66 @@ if "engine_used_for_match" not in st.session_state:
 
 with st.sidebar:
     st.header("🔑 API Configuration")
-    st.caption("Keys are used only for this session and never stored.")
 
-    groq_api_key = st.text_input(
-        "Groq API Key (Primary)",
-        type="password",
-        placeholder="gsk_...",
-        help="Powers llama-3.3-70b-versatile as the primary matching engine.",
-    )
+    # Check for host-configured secrets first (e.g., Streamlit Community Cloud
+    # secrets.toml). These are never committed to GitHub — set via the deploy
+    # platform's dashboard. If present, the app runs "pre-configured" and hides
+    # the input fields. Otherwise, it falls back to manual entry (BYOK mode).
+    secret_groq_key = st.secrets.get("GROQ_API_KEY", "")
+    secret_gemini_key = st.secrets.get("GEMINI_API_KEY", "")
 
-    gemini_api_key = st.text_input(
-        "Gemini API Key (Fallback)",
-        type="password",
-        placeholder="AIza...",
-        help="Powers gemini-2.5-flash. Used automatically if Groq fails or rate-limits.",
-    )
+    using_hosted_keys = bool(secret_groq_key or secret_gemini_key)
 
-    st.divider()
+    if using_hosted_keys:
+        st.success("🔒 Running with pre-configured API keys. No setup needed.")
+        groq_api_key = secret_groq_key
+        gemini_api_key = secret_gemini_key
 
-    if groq_api_key and gemini_api_key:
-        st.success("Both engines configured. Full fallback protection active.")
-    elif groq_api_key and not gemini_api_key:
-        st.warning("Only Groq configured. No fallback if Groq fails.")
-    elif not groq_api_key and gemini_api_key:
-        st.warning("Only Gemini configured. Will be used directly (no primary).")
+        with st.expander("Use your own keys instead"):
+            override_groq = st.text_input(
+                "Groq API Key (Primary)", type="password", placeholder="gsk_...",
+                key="override_groq",
+            )
+            override_gemini = st.text_input(
+                "Gemini API Key (Fallback)", type="password", placeholder="AIza...",
+                key="override_gemini",
+            )
+            if override_groq:
+                groq_api_key = override_groq
+            if override_gemini:
+                gemini_api_key = override_gemini
+
     else:
-        st.error("No API keys configured. Enter at least one to proceed.")
+        st.caption("Keys are used only for this session and never stored.")
 
-    st.divider()
-    st.caption("Get keys: [Groq Console](https://console.groq.com/keys) · "
-               "[Google AI Studio](https://aistudio.google.com/apikey)")
+        groq_api_key = st.text_input(
+            "Groq API Key (Primary)",
+            type="password",
+            placeholder="gsk_...",
+            help="Powers llama-3.3-70b-versatile as the primary matching engine.",
+        )
+
+        gemini_api_key = st.text_input(
+            "Gemini API Key (Fallback)",
+            type="password",
+            placeholder="AIza...",
+            help="Powers gemini-2.5-flash. Used automatically if Groq fails or rate-limits.",
+        )
+
+        st.divider()
+
+        if groq_api_key and gemini_api_key:
+            st.success("Both engines configured. Full fallback protection active.")
+        elif groq_api_key and not gemini_api_key:
+            st.warning("Only Groq configured. No fallback if Groq fails.")
+        elif not groq_api_key and gemini_api_key:
+            st.warning("Only Gemini configured. Will be used directly (no primary).")
+        else:
+            st.error("No API keys configured. Enter at least one to proceed.")
+
+        st.divider()
+        st.caption("Get keys: [Groq Console](https://console.groq.com/keys) · "
+                   "[Google AI Studio](https://aistudio.google.com/apikey)")
 
 
 # --------------------------------------------------------------------------
