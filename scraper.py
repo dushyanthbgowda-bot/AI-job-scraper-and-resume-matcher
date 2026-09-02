@@ -128,7 +128,7 @@ def scrape_job_description(url: str) -> str:
         raise ScraperError(f"Failed to fetch job URL: {str(e)}") from e
 
     try:
-        soup = BeautifulSoup(response.text, "lxml")
+        soup = BeautifulSoup(response.text, "html.parser")
 
         for tag_name in NOISE_TAGS:
             for tag in soup.find_all(tag_name):
